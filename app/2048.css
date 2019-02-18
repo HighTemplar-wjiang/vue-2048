@@ -1,0 +1,66 @@
+/* Animations  */
+
+
+body {
+    background-color: lightcyan;
+}
+
+#config {
+    position: relative;
+    width: 80%;
+    padding: 0.5em;
+    margin: auto;
+    margin-top: 2em;
+    background-color: lightyellow;
+    border-radius: 1vw;
+}
+
+#wrap {
+    position: relative;
+    display: block;
+    width: 40vw;
+    height: 40vw;
+    padding: 0.5em;
+    margin: auto;
+    margin-top: 2em;
+    background-color: white;
+    border-radius: 10px;
+    border: 1vw solid white;
+}
+
+li.box {
+    position: absolute;
+    display: flex;
+    font-size: 7vw;
+    color: white;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    border-radius: 1vw;
+    border: 0.1vw solid lightgray;
+    line-height: 200%;
+    box-sizing: border-box;
+    transition: all 0.2s;
+}
+
+#reset {
+    background-color: cadetblue;
+    color: white;
+    display: block;
+    margin: auto;
+    width: 25vw;
+    height: 5vw;
+    border-radius: 10px;
+    outline-style: none;
+    font-size: 2vw;
+    transition: 0.5s;
+}
+
+#reset:hover {
+    background-color: purple;
+}
+
+#reset:active {
+    background-color: cornflowerblue;
+    transition: 0.1s;
+}
