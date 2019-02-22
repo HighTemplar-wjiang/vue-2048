@@ -19,10 +19,10 @@
                 tag="ul"
                 id="wrap">
                 <li is="number-box"
-                    v-for="(num, index) in nums"
-                    v-bind:key="num"
+                    v-for="(item, index) in nums"
                     v-bind:index="index"
-                    v-bind:num="num"
+                    v-bind:key="item[0]"
+                    v-bind:value="item[1]"
                     v-bind:game-size="gameSize"
                 ></li>
             </transition-group>
