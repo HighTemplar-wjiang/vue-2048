@@ -40,7 +40,7 @@ li.box {
     border: 0.1vw solid lightgray;
     line-height: 200%;
     box-sizing: border-box;
-    transition: all 0.2s;
+    transition: background 0.5s ease-out, transform 0.2s, opacity 0.2s ease 0.25s;
 }
 
 #reset {
