@@ -24,7 +24,7 @@ Vue.component("number-box", {
                 width: unitWidth + "%",
                 opacity: a,
                 background: this.value < 2 ? "white" : `hsl(${h},${s},${l})`,
-                fontSize: 6 * (0.85 ** numLength) + "vw"
+                fontSize: 0.6 * Math.min(unitHeight, unitWidth) * (0.8 ** numLength) + "vmin"
             };
 
             return newStyle;

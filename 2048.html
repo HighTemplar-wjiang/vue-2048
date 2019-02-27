@@ -13,13 +13,13 @@
 <body>
     <div id="2048">
         <div id="app">
-            <div id="config">
+            <div id="config" v-bind:style="{ width: 100 + 'vmin' }">
                 <span>Height: </span><input type="number" id="height" v-model.number="newGameSize[0]"></input>
                 <span>Width: </span><input type="number" id="width" v-model.number="newGameSize[1]"></input>
                 <button id="set-config" v-on:click="configSet">Resize Game</button>
             </div>
             <transition-group 
-                v-bind:style="{ height: 10*gameSize[0] + 'vw', width: 10*gameSize[1] + 'vw' }"
+                v-bind:style="{ 'height': '60vmin', 'width': 60 * gameSize[1] / gameSize[0] + 'vmin' }"
                 tag="ul"
                 id="wrap">
                 <li is="number-box"
