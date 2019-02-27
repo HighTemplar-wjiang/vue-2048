@@ -12,8 +12,12 @@
 
 <body>
     <div id="2048">
-        <div id="config">Configurations</div>
         <div id="app">
+            <div id="config">
+                <span>Height: </span><input type="number" id="height" v-model.number="newGameSize[0]"></input>
+                <span>Width: </span><input type="number" id="width" v-model.number="newGameSize[1]"></input>
+                <button id="set-config" v-on:click="configSet">Resize Game</button>
+            </div>
             <transition-group 
                 v-bind:style="{ height: 10*gameSize[0] + 'vw', width: 10*gameSize[1] + 'vw' }"
                 tag="ul"

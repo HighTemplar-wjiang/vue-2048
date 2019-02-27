@@ -47,6 +47,7 @@ var app = new Vue({
         nums: [],
         steps: 0,
         gameSize: [4, 4],
+        newGameSize: [4, 4]
     },
     created: function () {
         this.init()
@@ -102,6 +103,7 @@ var app = new Vue({
                 [this.nums, temp] = [temp, this.nums];
                 [M, N] = [N, M];
             }
+            return [M, N];
         },
 
         // Events.
@@ -139,6 +141,33 @@ var app = new Vue({
             this.nums = [];
             this.init();
         },
+        configSet: function() {
+            var oldLength = this.gameSize[0] * this.gameSize[1];
+            var newLength = this.newGameSize[0] * this.newGameSize[1];
+            var i;
+
+            if(newLength > oldLength) {
+                for(i = newLength-1; i > oldLength-1; i--) {
+                    this.nums.push([i, 0]);
+                }
+                this.spawnNewBlock();
+            } else {
+                for(i = oldLength-1; i > newLength-1; i--) {
+                    this.nums.pop();
+                }
+            }
+
+            this.gameSize.splice(0, 1, this.newGameSize[0]);
+            this.gameSize.splice(1, 1, this.newGameSize[1]);
+            // this.gameSize[0] = this.newGameSize[0];
+            // this.gameSize[1] = this.newGameSize[1];
+        },
+        spawnNewBlock() {
+            var zeroIndexes = this.getZeroIndexes();
+            var newIndex = zeroIndexes[this.getRandomInt(zeroIndexes.length-1)];
+            var newNum = this.getRandomNumber();
+            this.nums.splice(newIndex, 1, [this.nums[newIndex][0], newNum]);
+        },
         move: function (direction) {
             var transpose_dict = {
                 "left": 0,
@@ -149,16 +178,13 @@ var app = new Vue({
 
             // Move and merge
             var transpose_times = transpose_dict[direction];
-            this.multiTranspose(transpose_times);
+            [this.gameSize[0], this.gameSize[1]] = this.multiTranspose(transpose_times);
             var moved = this.moveLeft();
-            this.multiTranspose(4 - transpose_times);
+            [this.gameSize[0], this.gameSize[1]] = this.multiTranspose(4 - transpose_times);
 
             // Generate new block.
             if(moved) {
-                var zeroIndexes = this.getZeroIndexes();
-                var newIndex = zeroIndexes[this.getRandomInt(zeroIndexes.length-1)];
-                var newNum = this.getRandomNumber();
-                this.nums.splice(newIndex, 1, [this.nums[newIndex][0], newNum]);
+                this.spawnNewBlock();
             }
         },
         moveLeft: function () {
@@ -168,13 +194,13 @@ var app = new Vue({
             for(x = 0; x < this.gameSize[0]; x++) {
                 var merged = new Array(this.gameSize[1]).fill(false);
                 for(y = 0; y < this.gameSize[1]; y++) {
-                    // console.log(x + " " + y)
+                    console.log(x + " " + y)
                     if(this.nums[this.xy2index(x, y, this.gameSize[1])][1] == 0) {
                         continue;
                     }
 
                     for(j = y; j > 0; j--) {
-                        curIndex = this.xy2index(x, j ,this.gameSize[1]);
+                        curIndex = this.xy2index(x, j, this.gameSize[1]);
                         preIndex = curIndex - 1;
 
                         // Move to empty cell.
@@ -190,6 +216,7 @@ var app = new Vue({
                             merged[j-1] = true;
                             moved = true;
 
+                            console.log(`Merging ${preIndex} ${curIndex}`);
                             this.nums[preIndex].splice(1, 1, this.nums[preIndex][1]*2);
                             this.nums[curIndex].splice(1, 1, 0);
                         }
