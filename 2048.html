@@ -18,7 +18,7 @@
                 <span>Width: </span><input type="number" id="width" v-model.number="newGameSize[1]"></input>
                 <button id="set-config" v-on:click="configSet">Resize Game</button>
             </div>
-            <transition-group 
+            <transition-group name="bounce"
                 v-bind:style="{ 'height': '60vmin', 'width': 60 * gameSize[1] / gameSize[0] + 'vmin' }"
                 tag="ul"
                 id="wrap">

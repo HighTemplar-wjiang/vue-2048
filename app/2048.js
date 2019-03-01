@@ -1,33 +1,57 @@
 Vue.component("number-box", {
+    data: function () {
+        return {
+            grownFlag: false
+        }
+    },
+    watch: {
+        value: function(newValue, oldValue) {
+            if((newValue > oldValue) && oldValue > 0) {
+                this.grownFlag = true;
+                var self = this;
+                setTimeout(function(){ self.grownFlag = false; }, 500);
+            } else {
+                this.grownFlag = false;
+            }
+        }
+    },
     computed: {
-        numberBoxStyle() {
-            let numLevel = parseInt(Math.log2(this.value+1));
-            let numLength = parseInt(Math.log10(this.value+1));
+        computedBoxStyle: function() {
 
             let unitHeight = 100.0 / this.gameSize[0];
             let unitWidth = 100.0 / this.gameSize[1];
             let x = parseInt(this.index / this.gameSize[1]);
             let y = parseInt(this.index % this.gameSize[1]);
 
+            return {
+                top: `${unitHeight*x}%`,
+                left: `${unitWidth*y}%`,
+                height: `${unitHeight}%`,
+                width: `${unitWidth}%`,
+            };
+        },
+        numberClassObject: function() {
+            return {
+                number: true,
+                emphasis: this.grownFlag,
+            }
+        },
+        numberFillStyle: function() {
+            let numLevel = parseInt(Math.log2(this.value+1));
+            let numLength = parseInt(Math.log10(this.value+1));
+            
             let h = (numLevel * 50) % 360;
             let s = "50%";
             let l = 50 - numLevel * 3 + "%";
             let a = this.value < 2 ? 0.0 : 0.5;
 
-            var newStyle = {
-                // visibility: this.value < 2 ? "hidden" : "visible",
-                visibility: "visible",
-                border: "0.1vw solid " + this.value < 2 ? "white" : "lightgray",
-                top: unitHeight * x + "%",
-                left: unitWidth * y + "%",
-                height: unitHeight + "%",
-                width: unitWidth + "%",
-                opacity: a,
-                background: this.value < 2 ? "white" : `hsl(${h},${s},${l})`,
-                fontSize: 0.6 * Math.min(unitHeight, unitWidth) * (0.8 ** numLength) + "vmin"
-            };
+            let unitHeight = 100.0 / this.gameSize[0];
 
-            return newStyle;
+            return {
+                background: `hsl(${h},${s},${l})`,
+                opacity: a,
+                fontSize: unitHeight * 0.5 * (0.8 ** numLength) + "vmin",
+            };
         }
     },
     props: ["index", "value", "gameSize"],
@@ -35,8 +59,17 @@ Vue.component("number-box", {
         <li
             class="box"
             draggable="true"
-            v-bind:style="numberBoxStyle"
-        >{{ value }}</li>
+            v-bind:style='computedBoxStyle'
+        >
+            <transition name="bounce">
+            <div
+                class="number"
+                v-bind:class="{emphasis: grownFlag}"
+                v-bind:style="numberFillStyle"
+                v-if="value > 0"
+            >{{ value }}</div>
+            </transition>
+        </li>
     `
 });
 
@@ -58,6 +91,7 @@ var app = new Vue({
         swapNum: function(i, j) {
             var p = this.nums[i];
             var q = this.nums[j];
+
             this.nums.splice(i, 1, q);
             this.nums.splice(j, 1, p);
         },
@@ -159,8 +193,6 @@ var app = new Vue({
 
             this.gameSize.splice(0, 1, this.newGameSize[0]);
             this.gameSize.splice(1, 1, this.newGameSize[1]);
-            // this.gameSize[0] = this.newGameSize[0];
-            // this.gameSize[1] = this.newGameSize[1];
         },
         spawnNewBlock() {
             var zeroIndexes = this.getZeroIndexes();
@@ -184,7 +216,7 @@ var app = new Vue({
 
             // Generate new block.
             if(moved) {
-                this.spawnNewBlock();
+                window.setTimeout(this.spawnNewBlock, 300);
             }
         },
         moveLeft: function () {
@@ -194,7 +226,7 @@ var app = new Vue({
             for(x = 0; x < this.gameSize[0]; x++) {
                 var merged = new Array(this.gameSize[1]).fill(false);
                 for(y = 0; y < this.gameSize[1]; y++) {
-                    console.log(x + " " + y)
+                    // console.log(x + " " + y)
                     if(this.nums[this.xy2index(x, y, this.gameSize[1])][1] == 0) {
                         continue;
                     }
@@ -216,9 +248,14 @@ var app = new Vue({
                             merged[j-1] = true;
                             moved = true;
 
-                            console.log(`Merging ${preIndex} ${curIndex}`);
-                            this.nums[preIndex].splice(1, 1, this.nums[preIndex][1]*2);
+                            // console.log(`Merging ${preIndex} ${curIndex}`);
+                            var newNumber = this.nums[preIndex][1] * 2
+                            this.nums[preIndex].splice(1, 1, newNumber);
                             this.nums[curIndex].splice(1, 1, 0);
+                            // Delayed popup.
+                            // window.setTimeout(function (index, numsRef) {
+                            //     numsRef[index].splice(1, 1, newNumber);
+                            //     }, 100, newIndex, this.nums, newNumber);
                         }
                     }
                 }

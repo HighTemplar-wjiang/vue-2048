@@ -1,5 +1,49 @@
 /* Animations  */
+.bounce-enter-active {
+    animation: bounce-in .3s;
+}
+.bounce-leave-active {
+    animation: bounce-out .3s;
+    animation-delay: 0.1s;
+}
+@keyframes bounce-in {
+    0% {
+        transform: scale(0);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+@keyframes bounce-out {
+    0% {
+        transform: scale(1);
+    }
+    100% {
+        transform: scale(0);
+    }
+}
+@keyframes bounce-emphasis {
+    0% {
+        transform: scale(1.0);
+    }
+    25% {
+        transform: scale(0.7);
+    }
+    50% {
+        transform: scale(1.0);
+    }
+    100% {
+        transform: scale(1.0);
+    }
+}
 
+.emphasis {
+    animation: bounce-emphasis 0.5s;
+    animation-iteration-count: infinite;
+}
 
 body {
     background-color: lightcyan;
@@ -36,11 +80,34 @@ li.box {
     text-align: center;
     justify-content: center;
     align-items: center;
+    border: none;
     border-radius: 1vw;
-    border: 0.1vw solid lightgray;
     line-height: 200%;
+    opacity: 1.0;
     box-sizing: border-box;
-    transition: background 0.5s ease-out, transform 0.2s, opacity 0.2s ease 0.3s;
+    transition: transform 0.15s;
+}
+
+li.box-hidden {
+    transform: scale(0.0)
+}
+
+li.box-show {
+    transform: scale(1.0)
+}
+
+div.number {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    margin: auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: 1vw;
+    border: none;
+    box-sizing: border-box;
+    color: white;
+    transition: all 0.1s ease 0.1s;
 }
 
 #reset {
