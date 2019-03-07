@@ -45,21 +45,24 @@
     animation-iteration-count: infinite;
 }
 
-body {
-    background-color: lightcyan;
+.size-input {
+    width: 5vw;
+    border: none;
 }
 
-#config {
+.control-pannel {
     position: relative;
-    width: 80%;
+    width: 100%;
     padding: 0.5em;
     margin: auto;
-    margin-top: 2em;
-    background-color: lightyellow;
+    margin-top: 0.2em;
+    background-color: darkgray;
     border-radius: 1vw;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
-#wrap {
+.checkboard {
     position: relative;
     display: block;
     width: 30vw;
@@ -70,6 +73,44 @@ body {
     background-color: white;
     border-radius: 10px;
     border: 1vw solid white;
+    z-index: 0;
+}
+
+.checkboard-mask {
+    position: relative;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    margin: auto;
+    color: rgba(255,255,255,1.0);
+    font-size: 10vmin;
+    font-family: 'Times New Roman', Times, serif;
+    background-color: rgba(169,169,169,0.6);
+    border-radius: 10px;
+    box-sizing: border-box;
+    z-index: 2;
+}
+
+body {
+    background-color: lightcyan;
+}
+
+#my2048 {
+    width: 100vw;
+    margin: auto;
+    text-align: center;
+}
+
+#app {
+    display: inline-block;
+}
+
+#warp {
+    width: 100%;
+    height: 100%;
+    z-index: 0;
 }
 
 li.box {
@@ -108,6 +149,7 @@ div.number {
     box-sizing: border-box;
     color: white;
     transition: all 0.1s ease 0.1s;
+    z-index: 1;
 }
 
 #reset {

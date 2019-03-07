@@ -8,18 +8,27 @@
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <!-- <script src="https://cdn.jsdelivr.net/npm/vue"></script> -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.14.1/lodash.min.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 </head>
 
 <body>
-    <div id="2048">
-        <div id="app">
-            <div id="config" v-bind:style="{ width: 100 + 'vmin' }">
-                <span>Height: </span><input type="number" id="height" v-model.number="newGameSize[0]"></input>
-                <span>Width: </span><input type="number" id="width" v-model.number="newGameSize[1]"></input>
+    <div id="my2048">
+        <div id="app" v-bind:style="{ 'width': 60 * gameSize[1] / gameSize[0] + 'vmin' }">
+            <div id="config" class="control-pannel">
+                <span>&nbsp;Height:&nbsp;&nbsp;<input class="size-input" type="number" id="height" v-model.number="newGameSize[0]"></span>
+                <span>&nbsp;Width:&nbsp;&nbsp;<input class="size-input" type="number" id="width" v-model.number="newGameSize[1]"></span>
                 <button id="set-config" v-on:click="configSet">Resize Game</button>
             </div>
-            <transition-group name="bounce"
-                v-bind:style="{ 'height': '60vmin', 'width': 60 * gameSize[1] / gameSize[0] + 'vmin' }"
+            <div id="bot" class="control-pannel">
+                <button id="query-bot" v-on:click="queryBot">Hint</button>
+                <span>{{ hintText }}</span>
+                <br>
+                <span><input id="checkbox-autoplay" type="checkbox" v-model="autoPlayFlag">Auto Play</span>
+                <span>Interval: <input id="interval" type="number" min="100" max="10000" v-model.number="autoPlayIntervalms"> ms</span>
+            </div>
+            <div class="checkboard" v-bind:style="{ 'height': '60vmin', 'width': '100%' }">
+                <div class="checkboard-mask" v-if="deadGameFlag">Game Over!</div>
+                <transition-group name="bounce"
                 tag="ul"
                 id="wrap">
                 <li is="number-box"
@@ -29,7 +38,8 @@
                     v-bind:value="item[1]"
                     v-bind:game-size="gameSize"
                 ></li>
-            </transition-group>
+                </transition-group>
+            </div>
             <button id="reset" v-on:click="reset">Reset</button>
         </div>
     </div>

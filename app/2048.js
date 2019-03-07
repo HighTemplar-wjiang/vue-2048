@@ -80,7 +80,41 @@ var app = new Vue({
         nums: [],
         steps: 0,
         gameSize: [4, 4],
-        newGameSize: [4, 4]
+        newGameSize: [4, 4],
+        hintProbabilities: {},
+        hintText: "",
+        hintMove: "",
+        autoPlayFlag: false,
+        autoPlayInterval: null,
+        autoPlayIntervalms: 1000,
+    },
+    computed: {
+        deadGameFlag: function() {
+            return this.deadGameCheck();
+        },
+    },
+    watch: {
+        autoPlayFlag: function () {
+            if(this.autoPlayFlag === true) {
+                this.autoPlayInterval = window.setInterval(this.autoPlay, this.autoPlayIntervalms);
+            } else {
+                clearInterval(this.autoPlayInterval);
+            }
+        },
+        autoPlayIntervalms: function() {
+            // Boudary check.
+            if(this.autoPlayIntervalms < 100) {
+                this.autoPlayIntervalms = 100;
+            }
+            if(this.autoPlayIntervalms > 10000) {
+                this.autoPlayIntervalms = 10000;
+            }
+
+            clearInterval(this.autoPlayInterval);
+            if(this.autoPlayFlag === true) {
+                this.autoPlayInterval = window.setInterval(this.autoPlay, this.autoPlayIntervalms);
+            } 
+        }
     },
     created: function () {
         this.init()
@@ -196,9 +230,53 @@ var app = new Vue({
         },
         spawnNewBlock() {
             var zeroIndexes = this.getZeroIndexes();
-            var newIndex = zeroIndexes[this.getRandomInt(zeroIndexes.length-1)];
-            var newNum = this.getRandomNumber();
-            this.nums.splice(newIndex, 1, [this.nums[newIndex][0], newNum]);
+            if(zeroIndexes.length > 0) {
+                var newIndex = zeroIndexes[this.getRandomInt(zeroIndexes.length-1)];
+                var newNum = this.getRandomNumber();
+                this.nums.splice(newIndex, 1, [this.nums[newIndex][0], newNum]);
+            }
+        },
+        deadGameCheck: function() {
+            for(var i = 0; i < this.gameSize[0]; i++) {
+                for(var j = 0; j < this.gameSize[1]; j++) {
+                    var index1dthis = this.xy2index(i, j, this.gameSize[1]);
+                    var index1dright = this.xy2index(i, j+1, this.gameSize[1]);
+                    var index1ddown = this.xy2index(i+1, j, this.gameSize[1]);
+
+                    // Bottom
+                    if(i == (this.gameSize[0] - 1)) {
+                        index1ddown = index1dright;
+                    }
+                    
+                    // Right most.
+                    if(j == (this.gameSize[1]- 1)) {
+                        index1dright = index1ddown;
+                    }
+
+                    // Last number, i.e., right down corner.
+                    if(index1dthis == (this.nums.length-1)) {
+                        if(this.nums[index1dthis][1] == 0) {
+                            return false;
+                        }
+                        break;
+                    }
+
+                    // Alive if there is empty block.
+                    if((this.nums[index1dthis][1] == 0) 
+                    || (this.nums[index1dright][1] == 0)
+                    || (this.nums[index1ddown][1] == 0)) {
+                        return false;
+                    }
+
+                    // Alive if mergable.
+                    if((this.nums[index1dthis][1] == this.nums[index1dright][1])
+                    || (this.nums[index1dthis][1] == this.nums[index1ddown][1])) {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         },
         move: function (direction) {
             var transpose_dict = {
@@ -252,15 +330,40 @@ var app = new Vue({
                             var newNumber = this.nums[preIndex][1] * 2
                             this.nums[preIndex].splice(1, 1, newNumber);
                             this.nums[curIndex].splice(1, 1, 0);
-                            // Delayed popup.
-                            // window.setTimeout(function (index, numsRef) {
-                            //     numsRef[index].splice(1, 1, newNumber);
-                            //     }, 100, newIndex, this.nums, newNumber);
                         }
                     }
                 }
             }
             return moved;
+        },
+        queryBot: function() {
+            axios.post("http://localhost:8000/my2048bot/bot", {
+                "checkboard": this.nums,
+                "game_size": this.gameSize,
+            }).then(response => {
+                if(response.status == 200) {
+                    this.hintProbabilities = response.data.details.suggest;
+                    this.hintText = "";
+                    this.hintMove = "up";
+                    var maxProbability = 0;
+                    for(var key in this.hintProbabilities) {
+                        var probability = this.hintProbabilities[key];
+                        if(probability > maxProbability) {
+                            maxProbability = probability;
+                            this.hintMove = key;
+                        }
+                        this.hintText += (key + ": ");
+                        this.hintText += this.hintProbabilities[key].toFixed(2);
+                        this.hintText += " | "
+                    }
+                }
+            }).catch(error => {
+                console.log(error);
+            })
+        },
+        autoPlay: function () {
+            this.queryBot();
+            this.move(this.hintMove);
         }
     }
 })
