@@ -15,19 +15,27 @@
     <div id="my2048">
         <div id="app" v-bind:style="{ 'width': 60 * gameSize[1] / gameSize[0] + 'vmin' }">
             <div id="config" class="control-pannel">
-                <span>&nbsp;Height:&nbsp;&nbsp;<input class="size-input" type="number" id="height" v-model.number="newGameSize[0]"></span>
-                <span>&nbsp;Width:&nbsp;&nbsp;<input class="size-input" type="number" id="width" v-model.number="newGameSize[1]"></span>
-                <button id="set-config" v-on:click="configSet">Resize Game</button>
+                <span class="non-breaking">&nbsp;Height:&nbsp;&nbsp;<input class="size-input" type="number" id="height" v-model.number="newGameSize[0]"></span>
+                <span class="non-breaking">&nbsp;Width:&nbsp;&nbsp;<input class="size-input" type="number" id="width" v-model.number="newGameSize[1]"></span>
+                <span class="non-breaking">&nbsp;Level:&nbsp;&nbsp;<input class="size-input" type="number" id="width" v-model.number="gameTargetLevel"> = {{ gameTarget }}</span>
+                <button id="set-config" v-on:click="configSet">Set</button>
             </div>
             <div id="bot" class="control-pannel">
-                <button id="query-bot" v-on:click="queryBot">Hint</button>
-                <span>{{ hintText }}</span>
+                <span class="non-breaking"><input id="checkbox-showhint" type="checkbox" v-model="hintDisplayFlag">Show hint | </span>
+                <span class="non-breaking">Method:&nbsp;<select id="bot-method" v-model="hintSelectedMethod">
+                    <option v-for="method in hintAvailableMethods" v-bind:value="method">
+                        {{ method }}
+                    </option>
+                </select></span>
                 <br>
-                <span><input id="checkbox-autoplay" type="checkbox" v-model="autoPlayFlag">Auto Play</span>
-                <span>Interval: <input id="interval" type="number" min="100" max="10000" v-model.number="autoPlayIntervalms"> ms</span>
+                <span class="non-breaking"><input id="checkbox-autoplay" type="checkbox" v-model="autoPlayFlag">Auto-play | </span>
+                <span class="non-breaking">Interval:&nbsp;<input id="interval" type="number" min="100" max="10000" v-model.number="autoPlayIntervalms">&nbsp;ms</span>
+                <br><hr>
+                <span>{{ steps }} steps.</span><span v-if="hintDisplayFlag"> | Hint: {{ hintText }}</span>
             </div>
             <div class="checkboard" v-bind:style="{ 'height': '60vmin', 'width': '100%' }">
                 <div class="checkboard-mask" v-if="deadGameFlag">Game Over!</div>
+                <div class="checkboard-mask" v-if="winGameFlag">You Win!</div>
                 <transition-group name="bounce"
                 tag="ul"
                 id="wrap">
@@ -40,7 +48,7 @@
                 ></li>
                 </transition-group>
             </div>
-            <button id="reset" v-on:click="reset">Reset</button>
+            <button id="reset" v-on:click="reset">Restart</button>
         </div>
     </div>
     <script src="./app/2048.js"></script>

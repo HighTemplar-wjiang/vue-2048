@@ -78,25 +78,57 @@ var app = new Vue({
     data: {
         gameConfig: {},
         nums: [],
+        maxNum: 0,
         steps: 0,
         gameSize: [4, 4],
+        gameTargetLevel: 11,
         newGameSize: [4, 4],
+        hintDisplayFlag: false,
+        hintSelectedMethod: 0,
+        hintAvailableMethods: [],
         hintProbabilities: {},
-        hintText: "",
+        hintText: "No hint yet.",
         hintMove: "",
+        hintAPIs: {
+            "hint": "http://localhost:8000/my2048bot/hint",
+            "available_methods": "http://localhost:8000/my2048bot/available_methods",
+        },
+        autoPlayStatus: 200,
         autoPlayFlag: false,
         autoPlayInterval: null,
         autoPlayIntervalms: 1000,
     },
     computed: {
+        gameTarget: function() {
+            return 2 ** this.gameTargetLevel;
+        },
         deadGameFlag: function() {
-            return this.deadGameCheck();
+            var newFlag = this.deadGameCheck();
+            if(newFlag == true) {
+                this.autoPlayFlag = false;
+            }
+            return newFlag;
+        },
+        winGameFlag: function() {
+            var newFlag = this.maxNum >= this.gameTarget;
+            if(newFlag == true) {
+                this.autoPlayFlag = false;
+            }
+            return newFlag;
         },
     },
     watch: {
+        gameTargetLevel: function() {
+            if(this.gameTargetLevel < 1) {
+                this.gameTargetLevel = 1;
+            }
+            else if(this.gameTargetLevel > 100) {
+                this.gameTargetLevel = 100;
+            }
+        },
         autoPlayFlag: function () {
             if(this.autoPlayFlag === true) {
-                this.autoPlayInterval = window.setInterval(this.autoPlay, this.autoPlayIntervalms);
+                this.autoPlayInterval = window.setInterval(this.queryBot, this.autoPlayIntervalms);
             } else {
                 clearInterval(this.autoPlayInterval);
             }
@@ -112,13 +144,24 @@ var app = new Vue({
 
             clearInterval(this.autoPlayInterval);
             if(this.autoPlayFlag === true) {
-                this.autoPlayInterval = window.setInterval(this.autoPlay, this.autoPlayIntervalms);
+                this.autoPlayInterval = window.setInterval(this.queryBot, this.autoPlayIntervalms);
             } 
         }
     },
     created: function () {
-        this.init()
+        this.init();
         window.addEventListener("keyup", this.keyUp)
+        // Set-up axios header.
+        axios.defaults.headers.common = {"Content-Type": "application/x-www-form-urlencoded"}
+        // Fetch available methods.
+        axios.get(this.hintAPIs.available_methods).then(
+            response => {
+                if(response.status == 200) {
+                    this.hintAvailableMethods = response.data.details.available_methods;
+                }
+                this.hintSelectedMethod = this.hintAvailableMethods[0];
+            }
+        )
     },
     methods: {
         // Utilities.
@@ -196,14 +239,17 @@ var app = new Vue({
                 default:
                     break;
             }
+            this.queryBot();
         },
         init: function () {
-            var totalNums = this.gameSize[0] * this.gameSize[1]
+            var totalNums = this.gameSize[0] * this.gameSize[1];
             var i;
             for(i = 0; i < totalNums; i++) {
                 this.nums.push([i, i < 2 ? this.getRandomNumber() : 0]);
             }
             this.nums = _.shuffle(this.nums);
+            this.maxNum = 0;
+            this.steps = 0;
         },
         reset: function () {
             this.nums = [];
@@ -216,13 +262,19 @@ var app = new Vue({
 
             if(newLength > oldLength) {
                 for(i = newLength-1; i > oldLength-1; i--) {
-                    this.nums.push([i, 0]);
+                    this.nums.push([Date.now()+i, 0]);
                 }
                 this.spawnNewBlock();
             } else {
                 for(i = oldLength-1; i > newLength-1; i--) {
                     this.nums.pop();
                 }
+            }
+
+            // Make sure there are as least two numbers.
+            var zeroIndexes = this.getZeroIndexes();
+            for(var i = 0; i < 2 - (newLength - zeroIndexes.length); i++) {
+                this.spawnNewBlock();
             }
 
             this.gameSize.splice(0, 1, this.newGameSize[0]);
@@ -294,6 +346,7 @@ var app = new Vue({
 
             // Generate new block.
             if(moved) {
+                this.steps++;
                 window.setTimeout(this.spawnNewBlock, 300);
             }
         },
@@ -330,6 +383,11 @@ var app = new Vue({
                             var newNumber = this.nums[preIndex][1] * 2
                             this.nums[preIndex].splice(1, 1, newNumber);
                             this.nums[curIndex].splice(1, 1, 0);
+
+                            // Calculate max.
+                            if(newNumber > this.maxNum) {
+                                this.maxNum = newNumber;
+                            }
                         }
                     }
                 }
@@ -337,10 +395,12 @@ var app = new Vue({
             return moved;
         },
         queryBot: function() {
-            axios.post("http://localhost:8000/my2048bot/bot", {
-                "checkboard": this.nums,
+            axios.post(this.hintAPIs["hint"], {
+                "method": this.hintSelectedMethod,
+                "checkboard": this.nums.map(num => num[1]),
                 "game_size": this.gameSize,
             }).then(response => {
+                this.autoPlayStatus = response.status;
                 if(response.status == 200) {
                     this.hintProbabilities = response.data.details.suggest;
                     this.hintText = "";
@@ -352,19 +412,18 @@ var app = new Vue({
                             maxProbability = probability;
                             this.hintMove = key;
                         }
-                        this.hintText += (key + ": ");
-                        this.hintText += this.hintProbabilities[key].toFixed(2);
-                        this.hintText += " | "
+                    }
+                    this.hintText = this.hintMove + "(" + (this.hintProbabilities[this.hintMove] * 100).toFixed(2) + "%)";
+                    if((this.autoPlayFlag == true)
+                    && (this.deadGameFlag == false)
+                    && (this.winGameFlag == false)) {
+                        this.move(this.hintMove);
                     }
                 }
             }).catch(error => {
                 console.log(error);
             })
         },
-        autoPlay: function () {
-            this.queryBot();
-            this.move(this.hintMove);
-        }
     }
 })
 

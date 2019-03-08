@@ -46,8 +46,12 @@
 }
 
 .size-input {
-    width: 5vw;
+    width: 3em;
     border: none;
+}
+
+.non-breaking {
+    white-space:nowrap;
 }
 
 .control-pannel {
@@ -93,8 +97,14 @@
     z-index: 2;
 }
 
+select {
+    width: 8em;
+    margin-left: 0.5em;
+    margin-right: 0.5em;
+}
+
 body {
-    background-color: lightcyan;
+    background-color: skyblue;
 }
 
 #my2048 {
