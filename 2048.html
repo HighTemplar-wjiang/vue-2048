@@ -17,7 +17,7 @@
             <div id="config" class="control-pannel">
                 <span class="non-breaking">&nbsp;Height:&nbsp;&nbsp;<input class="size-input" type="number" id="height" v-model.number="newGameSize[0]"></span>
                 <span class="non-breaking">&nbsp;Width:&nbsp;&nbsp;<input class="size-input" type="number" id="width" v-model.number="newGameSize[1]"></span>
-                <span class="non-breaking">&nbsp;Level:&nbsp;&nbsp;<input class="size-input" type="number" id="width" v-model.number="gameTargetLevel"> = {{ gameTarget }}</span>
+                <span class="non-breaking">&nbsp;Level:&nbsp;&nbsp;<input class="size-input" type="number" id="width" v-model.number="newGameTargetLevel"> = {{ 2**newGameTargetLevel }}</span>
                 <button id="set-config" v-on:click="configSet">Set</button>
             </div>
             <div id="bot" class="control-pannel">

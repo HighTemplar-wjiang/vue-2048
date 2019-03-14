@@ -83,6 +83,7 @@ var app = new Vue({
         gameSize: [4, 4],
         gameTargetLevel: 11,
         newGameSize: [4, 4],
+        newGameTargetLevel: 11,
         hintDisplayFlag: false,
         hintSelectedMethod: 0,
         hintAvailableMethods: [],
@@ -118,12 +119,12 @@ var app = new Vue({
         },
     },
     watch: {
-        gameTargetLevel: function() {
-            if(this.gameTargetLevel < 1) {
-                this.gameTargetLevel = 1;
+        newGameTargetLevel: function() {
+            if(this.newGameTargetLevel < 1) {
+                this.newGameTargetLevel = 1;
             }
-            else if(this.gameTargetLevel > 100) {
-                this.gameTargetLevel = 100;
+            else if(this.newGameTargetLevel > 100) {
+                this.newGameTargetLevel = 100;
             }
         },
         autoPlayFlag: function () {
@@ -195,7 +196,7 @@ var app = new Vue({
         xy2index: function(x, y, w) {
             return x * w + y;
         },
-        singleTranspose(originalMatrix, transposedMatrix, M, N) {
+        singleRotateRight(originalMatrix, transposedMatrix, M, N) {
             var i, j, it, jt;
             for(i = 0; i < M; i++) {
                 for(j = 0; j < N; j++) {
@@ -204,13 +205,13 @@ var app = new Vue({
                 }
             }
         },
-        multiTranspose: function(transpose_times) {
+        multiRotates: function(transpose_times) {
             var temp = new Array(this.nums.length);
             var M, N;
             for([M, N] = [this.gameSize[0], this.gameSize[1]], transpose_times %= 4; 
                 transpose_times > 0; 
                 transpose_times--) {
-                this.singleTranspose(this.nums, temp, M, N);
+                this.singleRotateRight(this.nums, temp, M, N);
                 [this.nums, temp] = [temp, this.nums];
                 [M, N] = [N, M];
             }
@@ -261,8 +262,9 @@ var app = new Vue({
             var i;
 
             if(newLength > oldLength) {
+                var idBase = window.performance.now();
                 for(i = newLength-1; i > oldLength-1; i--) {
-                    this.nums.push([Date.now()+i, 0]);
+                    this.nums.push([idBase+i, 0]);
                 }
                 this.spawnNewBlock();
             } else {
@@ -279,6 +281,9 @@ var app = new Vue({
 
             this.gameSize.splice(0, 1, this.newGameSize[0]);
             this.gameSize.splice(1, 1, this.newGameSize[1]);
+
+            // Set game level.
+            this.gameTargetLevel = this.newGameTargetLevel;
         },
         spawnNewBlock() {
             var zeroIndexes = this.getZeroIndexes();
@@ -289,6 +294,10 @@ var app = new Vue({
             }
         },
         deadGameCheck: function() {
+            if(this.winGameFlag == true) {
+                return false;
+            }
+
             for(var i = 0; i < this.gameSize[0]; i++) {
                 for(var j = 0; j < this.gameSize[1]; j++) {
                     var index1dthis = this.xy2index(i, j, this.gameSize[1]);
@@ -340,9 +349,9 @@ var app = new Vue({
 
             // Move and merge
             var transpose_times = transpose_dict[direction];
-            [this.gameSize[0], this.gameSize[1]] = this.multiTranspose(transpose_times);
+            [this.gameSize[0], this.gameSize[1]] = this.multiRotates(transpose_times);
             var moved = this.moveLeft();
-            [this.gameSize[0], this.gameSize[1]] = this.multiTranspose(4 - transpose_times);
+            [this.gameSize[0], this.gameSize[1]] = this.multiRotates(4 - transpose_times);
 
             // Generate new block.
             if(moved) {
